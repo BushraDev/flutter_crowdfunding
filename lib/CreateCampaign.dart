@@ -143,15 +143,13 @@ class _CreateCampaignState extends State<CreateCampaign> {
 
   Future<http.Response>createNewCampaign()
   {
-    print(cPhoto);
-    return http.post("http://1.1.1.28/crowdfunding/add_campaign.php", body: {
+    return http.post("http://192.168.137.1/crowdfunding/add_campaign.php", body: {
       "cPhoto": cPhoto,
       "cTitle": cTitle,
       "cCost": cCost,
       "cDisc": cDisc,
       "cStartDate":startDate.toString(),
       "cEndDate":"20"
-    });
-  }
+    });}
 
 }

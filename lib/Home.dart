@@ -17,7 +17,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   @override
-  String ip="http://1.1.1.28/crowdfunding/";
+  String ip="http://192.168.137.1/crowdfunding/";
   String accountName = "Crowdfunding";
   String accountEmail = "";
   int currentPage;

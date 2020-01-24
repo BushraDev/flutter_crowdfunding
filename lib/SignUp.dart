@@ -146,7 +146,7 @@ class _SignUpState extends State<SignUp> {
     print(
         "addUser: $accountEmail and $accountPass and $accountName and $accountPhoto");
 
-    return http.post("http://10.0.0.120/crowdfunding/add_user.php", body: {
+    return http.post("http://192.168.137.1/crowdfunding/add_user.php", body: {
       "user_photo": accountPhoto,
       "user_name": accountName,
       "user_email": accountEmail,

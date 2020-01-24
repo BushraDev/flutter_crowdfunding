@@ -17,7 +17,7 @@ class _DetailsState extends State<Details>
    _DetailsState(this. campaign);
    @override
   Widget build(BuildContext context) {
-     String ip="http://1.1.1.28/crowdfunding/";
+     String ip="http://192.168.137.1/crowdfunding/";
      return Scaffold(
       appBar: AppBar(
         title: Text("Crowdfunding"),
