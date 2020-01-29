@@ -1,32 +1,47 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_crowdfunding/AppServer.dart';
 import 'package:flutter_crowdfunding/Campaign.dart';
 import 'package:flutter_crowdfunding/CreateCampaign.dart';
 import 'package:flutter_crowdfunding/Details.dart';
 import 'package:flutter_crowdfunding/ProfilePage.dart';
-import 'package:flutter_crowdfunding/SignUp.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert' as dartConverter;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'CampainsList.dart';
 
 class Home extends StatefulWidget {
+  final bool user;
+  final String type;
+  Home({Key key, @required this.user, @required this.type}) : super(key:key);
   @override
-  _HomeState createState() => _HomeState();
+  _HomeState createState() => _HomeState(user,type);
 }
 
+
 class _HomeState extends State<Home> {
+   bool user;
+   String type;
+  _HomeState(this.user,this.type);
   @override
-  String ip="http://192.168.137.1/crowdfunding/";
   String accountName = "Crowdfunding";
   String accountEmail = "";
   int currentPage;
   File pickedimage;
   int c_id;
   var id;
-  int position;
-  Widget build(BuildContext context) {
-    print(ip+"get_campaigns.php");
+   int difference;
+   int position;
+
+  Widget build(BuildContext context)
+  {
+
+    print(AppServer.IP+"get_campaigns.php");
+    print(user);
+    print(type);
+    print("user");
     return Scaffold(
       appBar: AppBar(
         title: Text("Crowdfunding"),
@@ -39,25 +54,6 @@ class _HomeState extends State<Home> {
               accountName: Text(accountName),
               accountEmail: Text(accountEmail),
             ),
-            ListTile(
-              title: Text("Log in"),
-              leading: Icon(Icons.person),
-            ),
-            Divider(),
-            ListTile(
-              title: Text("Sign Up"),
-              leading: Icon(Icons.person_add),
-              onTap: ()
-              {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SignUp(),
-                  ),
-                );
-              },
-            ),
-            Divider(),
             ListTile(
               title: Text("Create Campaign"),
               leading: Icon(Icons.create),
@@ -75,8 +71,25 @@ class _HomeState extends State<Home> {
             ListTile(
               title: Text("Log out"),
               leading: Icon(Icons.settings_power),
-            ),
+              onTap: ()
+              {
+                removeValues().then((res)
+                {
 
+                    Navigator.pop(context);
+                    user=false;
+
+                    Navigator.pop(context);
+
+                    Navigator.push(context, MaterialPageRoute(builder: (cxt) {
+                      return new CampaignsList();
+                    }));
+
+
+                });
+
+              },
+            ),
           ],
         ),
       ),
@@ -103,6 +116,10 @@ class _HomeState extends State<Home> {
                       data[index]["s_date"],
                       data[index]["e_date"],
                       data[index]["photo"]);
+                DateTime now = DateTime.now();
+                var newDateTimeObj2 = new DateFormat("dd-MM-yyyy").parse(data[index]["e_date"]);
+                difference = newDateTimeObj2.difference(now).inDays;
+                print(difference);
                 int funds=int.parse(data[index]["funds"]);
                 int costs=int.parse(data[index]["c_cost"]);
                 double fund=funds.toDouble();
@@ -126,7 +143,7 @@ class _HomeState extends State<Home> {
                               children: <Widget>
                               [
                                 Container(margin: EdgeInsets.all(0),
-                                    child:Image.network (ip+data[index]["photo"])),
+                                    child:Image.network (AppServer.IP+data[index]["photo"])),
                                 SizedBox(
                                   height: 10,
                                 ),
@@ -161,7 +178,7 @@ class _HomeState extends State<Home> {
                                         Icon(Icons.access_time,color: Colors.purple,),
                                         Column(children: <Widget>[
                                           Text("Days To Go",style: TextStyle(color: Colors.purple,fontStyle: FontStyle.italic),),
-                                          Text(data[index]["e_date"])
+                                          Text(difference.toString())
                                         ],
                                         ),
                                       ],
@@ -206,7 +223,8 @@ class _HomeState extends State<Home> {
           setState(() {
             currentPage = position;
 
-            if (position == 1) {
+            if (position == 1)
+            {
               Navigator.push(context, MaterialPageRoute(builder: (cxt) {
                 return new Profile();
               }));
@@ -218,11 +236,19 @@ class _HomeState extends State<Home> {
   }
 
   Future<http.Response> getCampaignsFromApi() async {
-    return await http.get(ip+"get_campaigns.php");
+    return await http.get(AppServer.IP+"get_campaigns.php");
   }
 
-/*  Widget checkImage(String url)
-  {
-    if ()
-  }*/
+   Future<bool>removeValues() async
+   {
+     SharedPreferences prefs = await SharedPreferences.getInstance();
+     prefs.remove("id");
+     prefs.remove("name");
+     prefs.remove("pass");
+     prefs.remove("type");
+     prefs.remove("photo");
+     return true;
+
+   }
+
 }

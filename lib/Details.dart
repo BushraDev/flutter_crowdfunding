@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_crowdfunding/AppServer.dart';
 
 import 'Campaign.dart';
 
@@ -17,7 +18,6 @@ class _DetailsState extends State<Details>
    _DetailsState(this. campaign);
    @override
   Widget build(BuildContext context) {
-     String ip="http://192.168.137.1/crowdfunding/";
      return Scaffold(
       appBar: AppBar(
         title: Text("Crowdfunding"),
@@ -34,7 +34,7 @@ class _DetailsState extends State<Details>
                     height: 20,
                   ),
                   Container(margin: EdgeInsets.all(0),
-                      child:Image.network (ip+campaign.photo)),
+                      child:Image.network (AppServer.IP+campaign.photo)),
                   SizedBox(
                     height: 30,
                   ),
@@ -47,6 +47,9 @@ class _DetailsState extends State<Details>
                         children: <Widget>[
 
                           Icon(Icons.favorite,color: Colors.purple,),
+                          SizedBox(
+                            width: 10,
+                          ),
                           Column(children: <Widget>[
                             Text("Donors",style: TextStyle(color: Colors.purple,fontStyle: FontStyle.italic),),
                             Text(campaign.donors)
@@ -59,6 +62,9 @@ class _DetailsState extends State<Details>
                       Row(
                         children: <Widget>[
                           Icon(Icons.access_time,color: Colors.purple,),
+                          SizedBox(
+                            width: 10,
+                          ),
                           Column(children: <Widget>[
                             Text("Start Date",style: TextStyle(color: Colors.purple,fontStyle: FontStyle.italic),),
                             Text(campaign.s_date)
@@ -81,6 +87,10 @@ class _DetailsState extends State<Details>
                         children: <Widget>[
 
                           Icon(Icons.monetization_on,color: Colors.purple,),
+                          SizedBox(
+                            width: 10,
+                          ),
+
                           Column(children: <Widget>[
                             Text("Cost",style: TextStyle(color: Colors.purple,fontStyle: FontStyle.italic),),
                             Text(campaign.c_cost)
@@ -93,6 +103,10 @@ class _DetailsState extends State<Details>
                       Row(
                         children: <Widget>[
                           Icon(Icons.timer_off,color: Colors.purple,),
+                          SizedBox(
+                            width: 10,
+                          ),
+
                           Column(children: <Widget>[
                             Text("End Date",style: TextStyle(color: Colors.purple,fontStyle: FontStyle.italic),),
                             Text(campaign.e_date)

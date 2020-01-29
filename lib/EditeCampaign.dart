@@ -1,36 +1,48 @@
-
-import 'dart:convert';
 import 'dart:io';
-import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_crowdfunding/AppServer.dart';
-import 'package:flutter_crowdfunding/Home.dart';
+import 'package:flutter_crowdfunding/ProfilePage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class CreateCampaign extends StatefulWidget {
+import 'Campaign.dart';
+import 'Details.dart';
+
+class EditeCampaign extends StatefulWidget {
+
+  final Campaign campaign;
+  EditeCampaign({Key key, @required this.campaign}) : super(key:key);
+
   @override
-  _CreateCampaignState createState() => _CreateCampaignState();
+  _EditeCampaignState createState() => _EditeCampaignState(campaign);
 }
 
-class _CreateCampaignState extends State<CreateCampaign> {
-  GlobalKey<FormState> createCampaign = new GlobalKey();
+class _EditeCampaignState extends State<EditeCampaign> {
+
+  Campaign campaign;
+  TextEditingController titleController=TextEditingController();
+  TextEditingController costController=TextEditingController();
+  TextEditingController discController=TextEditingController();
+  _EditeCampaignState(this. campaign);
+
+
+  GlobalKey<FormState> editeCampaign = new GlobalKey();
   File pickedimage;
-  String cTitle,cCost,cDisc,cPhoto;
-  DateTime dateTime=new DateTime.now();
-  String date;
-  String startDate;
-  String uId;
+  String cTitle,cCost,cDisc;
+  DateTime startDate=new DateTime.now();
+
   @override
-  Widget build(BuildContext context)
-  {
-    getStringValuesSF().then((res){
-      uId=res;
-    });
-    startDate=formatDate(DateTime(dateTime.year, dateTime.month, dateTime.day), [dd, '/', mm, '/', yyyy]);
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    titleController.text=campaign.c_title;
+    costController.text=campaign.c_cost;
+    discController.text=campaign.c_disc;
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Crowdfunding"),
@@ -38,32 +50,14 @@ class _CreateCampaignState extends State<CreateCampaign> {
       body: Container(
         margin: EdgeInsets.all(30),
         child: Form(
-          key: createCampaign,
+          key: editeCampaign,
           child: ListView(
             children: <Widget>[
-              Container(
-                child:checkImage(),
-                height: 200,
-                width: double.infinity,
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              FlatButton(
-                child: Icon(Icons.camera_alt),
-                onPressed: () async
-                {
-                  pickedimage = await ImagePicker.pickImage(source: ImageSource.gallery);
-                  List<int> imageBytes = pickedimage.readAsBytesSync();
-                  cPhoto = base64Encode(imageBytes);
-                  print(cPhoto);
-                  setState(() {});
-                },
-              ),
               SizedBox(
                 height: 10,
               ),
               TextFormField(
+                controller: titleController,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                   labelText: "Title",
@@ -77,6 +71,7 @@ class _CreateCampaignState extends State<CreateCampaign> {
                 height: 30,
               ),
               TextFormField(
+                controller: costController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: "Cost",
@@ -91,6 +86,7 @@ class _CreateCampaignState extends State<CreateCampaign> {
                 height: 30,
               ),
               TextFormField(
+                controller: discController,
                 keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
                   labelText: "Discription",
@@ -105,20 +101,24 @@ class _CreateCampaignState extends State<CreateCampaign> {
                 height: 30,
               ),
               FlatButton(
-                child: Text("Create Campaign"),
+                child: Text("Done"),
                 color: Colors.purple,
                 padding: EdgeInsets.all(20),
                 textColor: Colors.white,
                 onPressed: ()
                 {
-                  if (createCampaign.currentState.validate()&& pickedimage != null)
+                  if (editeCampaign.currentState.validate() )
                   {
-                    createCampaign.currentState.save();
-                    createNewCampaign().then((data)
-                    {
+                    editeCampaign.currentState.save();
+                    editeCurrentCampaign().then((data) {
                       print(data.body);
 
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => Home(user: true,type: "0",),),);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Profile(),
+                        ),
+                      );
                     });
 
                   }
@@ -142,34 +142,15 @@ class _CreateCampaignState extends State<CreateCampaign> {
       ),
     );
   }
-  Widget checkImage() {
-    if (pickedimage == null) return Image.asset("images/placeHolder.png");
 
-    return Image.file(pickedimage);
-  }
-
-  Future<http.Response>createNewCampaign()
+  Future<http.Response>editeCurrentCampaign()
   {
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('dd-MM-yyyy').format(now);
-    DateTime today = new DateTime(now.year,now.month,now.day);
-    DateTime DaysAgo = today.add(new Duration(days: 20));
-    String formattedDate2 = DateFormat('dd-MM-yyyy').format(DaysAgo);
-    return http.post(AppServer.IP+"add_campaign.php", body: {
-      "cPhoto": cPhoto,
-      "uId": uId,
+    return http.post(AppServer.IP+"update_campaign.php", body:
+    {
+      "cId" : campaign.c_id,
       "cTitle": cTitle,
       "cCost": cCost,
       "cDisc": cDisc,
-      "cStartDate":formattedDate,
-      "cEndDate":formattedDate2,
     });}
 
-  Future <String> getStringValuesSF() async
-  {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    //Return String
-    String id = prefs.getString('id');
-    return id;
-  }
 }

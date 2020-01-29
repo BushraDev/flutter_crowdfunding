@@ -1,20 +1,29 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_crowdfunding/AppServer.dart';
 import 'package:flutter_crowdfunding/Home.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'User.dart';
 
 class SignUp extends StatefulWidget {
   @override
   _SignUpState createState() => _SignUpState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _SignUpState extends State<SignUp>
+{
   String accountName = "Crowdfunding";
-  String accountEmail = "", accountPass, accountPhoto;
+  String accountEmail = "",
+      accountPass,
+      accountPhoto,
+      accountType = "0";
+  User u;
+
   GlobalKey<FormState> signUp = new GlobalKey();
   File pickedimage;
 
@@ -101,32 +110,65 @@ class _SignUpState extends State<SignUp> {
                 padding: EdgeInsets.all(20),
                 textColor: Colors.white,
                 onPressed: () {
-                  if (signUp.currentState.validate()&& pickedimage != null)
+                  if (signUp.currentState.validate() && pickedimage != null)
                   {
                     signUp.currentState.save();
-                   addUser().then((data) {
-                     print(data.body);
 
-                     Navigator.push(context, MaterialPageRoute(builder: (cxt) {
-                       return new Home();
-                     })
-                     );
-
-                    });
-
-                  }
-                  else if(pickedimage==null)
+                    addUser().then((res)
                     {
-                      Fluttertoast.showToast(
-                          msg: "Please pick your photo",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.CENTER,
-                          timeInSecForIos: 1,
-                          backgroundColor: Colors.red,
-                          textColor: Colors.white,
-                          fontSize: 16.0
-                      );
-                    }
+                      String jsonsDataString =res.body;// toString of Response's body is assigned to jsonDataString
+
+                      Map<String, dynamic> map = jsonDecode(jsonsDataString); // import 'dart:convert';
+
+                      String result = map['result'];
+
+                      if (result == "success")
+                      {
+                        //print("ooo");
+                        getUser().then((res)
+                        {
+                          Map<String, dynamic> data = jsonDecode(res.body);
+
+                          u = User(data["u_id"],
+                              data["u_name"],
+                              data["u_email"],
+                              data["u_pass"],
+                              data["u_photo"],
+                              data["u_type"]);
+
+                          addStringToSF().then((res){
+
+                            Navigator.push(context, MaterialPageRoute(builder: (cxt)
+                            {
+                              return new Home(user: true,type: u.u_type,);
+                            }));
+
+                          });
+
+                        });
+                      }
+                      else if (result== "failed")
+                      {
+                        Fluttertoast.showToast(
+                            msg: "failed adding user",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.CENTER,
+                            timeInSecForIos: 1,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0);
+                      }
+                    });
+                  } else if (pickedimage == null) {
+                    Fluttertoast.showToast(
+                        msg: "Please pick your photo",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.CENTER,
+                        timeInSecForIos: 1,
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                        fontSize: 16.0);
+                  }
                 },
               ),
             ],
@@ -143,13 +185,30 @@ class _SignUpState extends State<SignUp> {
   }
 
   Future<http.Response> addUser() {
-    print(
-        "addUser: $accountEmail and $accountPass and $accountName and $accountPhoto");
-
-    return http.post("http://192.168.137.1/crowdfunding/add_user.php", body: {
+    return http.post(AppServer.SIGNUP_IP, body:
+    {
       "user_photo": accountPhoto,
       "user_name": accountName,
       "user_email": accountEmail,
+      "user_password": accountPass,
+      "user_type": accountType,
+    });
+  }
+
+  Future<bool> addStringToSF() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('id', u.u_id);
+    prefs.setString('name', u.u_name);
+    prefs.setString('pass', u.u_pass);
+    prefs.setString('type', u.u_type);
+    prefs.setString('photo', u.u_photo);
+    return true;
+  }
+
+  Future<http.Response> getUser() {
+
+    return http.post(AppServer.LOGIN_IP, body: {
+      "user_name": accountName,
       "user_password": accountPass
     });
   }
