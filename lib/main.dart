@@ -7,7 +7,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Login.dart';
 
-void main() => runApp(new MaterialApp(
+void main() => runApp(
+    new MaterialApp(
       title: "Crowdfunding",
       theme: ThemeData(
         primarySwatch: Colors.purple,
